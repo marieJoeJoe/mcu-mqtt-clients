@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "mqtt_app.h": "c",
+        "mqtt_os_adapter.C": "cpp",
+        "mqttclient.h": "c",
+        "mqtt_os_adapter.h": "c"
+    }
+}
