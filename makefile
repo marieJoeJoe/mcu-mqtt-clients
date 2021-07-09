@@ -28,8 +28,6 @@ $(TARGET):$(OBJ_C)
 $(OBJ_C):$(SRC_C)
 	$(CC) -c $(SRC_C) $(CCFLAG)
 
-3b:
-4b:
 freertos:
 	@echo "hello world!!"
 

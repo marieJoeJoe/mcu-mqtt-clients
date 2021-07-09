@@ -5,8 +5,8 @@
 #define AT_RESP_END_OK      "OK"
 #define AT_RESP_END_ERROR   "ERROR"
 
-
-
+#include <string.h>
+#include <stdint.h>
 
 
 
