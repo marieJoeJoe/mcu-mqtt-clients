@@ -1,10 +1,3 @@
-/*************************************************************/
-/*  MoTalk - A "C" program for modem setup.                */
-/*           This program is meant as an aid only and is   */
-/*           not supported by IBM.                       */
-/*                  compile:  cc -o motalk motalk.c       */
-/*                  Usage:  motalk /dev/tty? [speed]      */
-/*************************************************************/
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +6,11 @@
 #include <fcntl.h>
 #include <termio.h>
 #include <unistd.h>
+
+
+
+#define AT_DEVICE_FILE "/dev/ttyUSB3"
+
 
 FILE *fdr, *fdw;
 int fd;
@@ -33,39 +31,15 @@ int main(int argc, char *argv[])
 
    int baud=0, num;
    struct termio term, tstdin;
-   if (argc < 2 || !strcmp(argv[1], "-?"))
+
+   if ((fd = open(AT_DEVICE_FILE, O_RDWR | O_NDELAY)) < 0)
    {
-      fprintf(stderr, "Usage: motalk /dev/tty? [speed]\n");
-      exit(1);
-   }
-   if ((fd = open(argv[1], O_RDWR | O_NDELAY)) < 0)
-   {
-      perror(argv[1]);
+      perror(AT_DEVICE_FILE);
       exit(errno);
    }
-   if (argc > 2)
-   {
-      switch(atoi(argv[2]))
-      {
-         case   300: baud = B300;
-                     break;
-         case  1200: baud = B1200;
-                     break;
-         case  2400: baud = B2400;
-                     break;
-         case  4800: baud = B4800;
-                     break;
-         case  9600: baud = B9600;
-                     break;
-         case 19200: baud = B19200;
-                     break;
-         case 38400: baud = B38400;
-                     break;
-         default:    baud = 0;
-                     fprintf(stderr, "%s: %s is an unsupported baud\n", argv[0],argv[2]);
-                     exit(1);
-         }
-      }
+
+
+   baud = B1152000;
    /* Save stdin and tty state and trap some signals */
    ioctl(fd, TCGETA, &term_save);
    ioctl(fileno(stdin), TCGETA, &stdin_save);
@@ -95,24 +69,26 @@ int main(int argc, char *argv[])
    ioctl(fd, TCSETA, &term);
    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) & ~O_NDELAY);
    /*  Open tty for read and write */
-   if ((fdr = fopen(argv[1], "r")) == NULL )
+   if ((fdr = fopen(AT_DEVICE_FILE, "r")) == NULL )
    {
-      perror(argv[1]);
+      perror(AT_DEVICE_FILE);
       exit(errno);
    }
-   if ((fdw = fopen(argv[1], "w")) == NULL )
+   if ((fdw = fopen(AT_DEVICE_FILE, "w")) == NULL )
    {
-      perror(argv[1]);
+      perror(AT_DEVICE_FILE);
       exit(errno);
    }
-   /*  Talk to the modem */
-   puts("Ready... ^C to exit");
    while (1)
    {
-      if ((num = read(fileno(stdin), buffer, 80)) > 0)
+      memset(buffer,'\0',sizeof(buffer));
+      if ((num = read(fileno(stdin), buffer, 80)) > 0){
          write(fileno(fdw), buffer, num);
+         printf("%s\n",buffer);
+      }
+
+      memset(buffer,'\0',sizeof(buffer));
       if ((num = read(fileno(fdr), buffer, 80)) > 0)
          write(fileno(stdout), buffer, num);
-      //Exit (0);
    }
 } 

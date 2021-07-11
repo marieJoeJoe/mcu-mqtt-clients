@@ -20,6 +20,14 @@
 
 
 #ifdef OS_RTOS
+
+
+int MQTT_Init(void) {
+
+
+
+}
+
 void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage* aMessgage) {
     md->topicName = aTopicName;
     md->message = aMessgage;

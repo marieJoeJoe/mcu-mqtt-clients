@@ -15,9 +15,7 @@ LDFLAGS= -lpthread
 CC=gcc
 
 
-
-
-TARGET=mqtt_via_at
+TARGET=mqtt_client
 
 src:
 	@echo $(SRC_C)

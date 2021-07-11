@@ -17,6 +17,9 @@
 #include "MQTTClient.h"
 
 #ifdef OS_LINUX
+
+
+
 void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage* aMessgage) {
     md->topicName = aTopicName;
     md->message = aMessgage;
@@ -348,6 +351,13 @@ int waitfor(Client* c, int packet_type, Timer* timer)
     while ((rc = cycle(c, timer)) != packet_type);  
     
     return rc;
+}
+
+
+int MQTT_Init(void) {
+
+
+
 }
 
 

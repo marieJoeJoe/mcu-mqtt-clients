@@ -18,9 +18,11 @@
 
 #define MQTT_HOST "***.***.***.***"		//ip addr
 #define MQTT_PORT 1883					//port
-#define MQTT_USER "admin"				//user
-#define MQTT_PASS "password"			//passwd
-#define MQTT_CLIENT_ID "7474747474"		//client id
+#define MQTT_USER "*********"				//user
+#define MQTT_PASS "*********"			//passwd
+#define MQTT_CLIENT_ID_PC_LINUX    "mcu-mqtt-client-pc-linux"		//client id
+#define MQTT_CLIENT_ID_PC_LINUX_AT "mcu-mqtt-client-pc-linux-at"		//client id
+#define MQTT_CLIENT_ID_MCU_RTOS_AT "mcu-mqtt-client-mcu-rtos-at"		//client id
 
 typedef struct {
     Network Network;
@@ -55,7 +57,7 @@ struct opts_struct {
     int     port;
     int     showtopics;
 } opts = {
-    (char *)"iot-dev", 0, (char *)"\n", QOS0, "admin", "password", (char *)"localhost", 1883, 0
+    (char *)MQTT_CLIENT_ID_PC_LINUX, 0, (char *)"\n", QOS0, MQTT_USER, MQTT_PASS, (char *)MQTT_HOST, MQTT_PORT, 0
 };
 
 Cloud_MQTT_t Iot_mqtt;
@@ -115,7 +117,7 @@ int mqtt_device_connect(Cloud_MQTT_t *piot_mqtt)
         data.willFlag = 0;
     }
     data.MQTTVersion = 3;
-    data.clientID.cstring = MQTT_CLIENT_ID;
+    data.clientID.cstring = MQTT_CLIENT_ID_PC_LINUX;
     data.username.cstring = MQTT_USER;
     data.password.cstring = MQTT_PASS;
     data.keepAliveInterval = 30;
@@ -229,7 +231,7 @@ int mqtt_data_write(char *pbuf, int len, char retain)
     return ret;
 }
 
-void *cloud_mqtt_thread(void *arg)
+void * mqtt_task_thread(void *arg)
 {
     int ret, len; 
     char will_msg[256] = {"hello world"};						//initializ will data
