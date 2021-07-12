@@ -379,7 +379,7 @@ int MQTTConnect(Client* c, MQTTPacket_connectData* options)
     
     c->keepAliveInterval = options->keepAliveInterval;
     countdown(&c->ping_timer, c->keepAliveInterval);
-    printf("[%s]c->keepAliveInterval = %d", __FUNCTION__,c->keepAliveInterval);
+    printf("[%s]c->keepAliveInterval = %d\n", __FUNCTION__,c->keepAliveInterval);
     if ((len = MQTTSerialize_connect(c->buf, c->buf_size, options)) <= 0)
         goto exit;
     if ((rc = sendPacket(c, len, &connect_timer)) != SUCCESS)  // send the connect packet

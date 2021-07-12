@@ -18,8 +18,8 @@
 
 #define MQTT_HOST "***.***.***.***"		//ip addr
 #define MQTT_PORT 1883					//port
-#define MQTT_USER "*********"				//user
-#define MQTT_PASS "*********"			//passwd
+#define MQTT_USER "****"				//user
+#define MQTT_PASS "****"			//passwd
 #define MQTT_CLIENT_ID_PC_LINUX    "mcu-mqtt-client-pc-linux"		//client id
 #define MQTT_CLIENT_ID_PC_LINUX_AT "mcu-mqtt-client-pc-linux-at"		//client id
 #define MQTT_CLIENT_ID_MCU_RTOS_AT "mcu-mqtt-client-mcu-rtos-at"		//client id
@@ -234,8 +234,9 @@ int mqtt_data_write(char *pbuf, int len, char retain)
 void * mqtt_task_thread(void *arg)
 {
     int ret, len; 
-    char will_msg[256] = {"hello world"};						//initializ will data
-    
+    char will_msg[256] = {"[will]:say goodbye!"};						//initializ will data
+    //char will_msg[256] = {"temperatur: 36.3 humanity: 78"};						//initializ will data
+
     iot_mqtt_init(&Iot_mqtt);									//initial topic
     mqtt_will_msg_set(&Iot_mqtt, will_msg, strlen(will_msg));
 

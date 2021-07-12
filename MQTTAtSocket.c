@@ -14,14 +14,22 @@ void clearRxBuffer(void) {
     memset(rx_buffer, 0, sizeof(rx_buffer));
 }
 
-void DeviceSendCommand(void* device, uint8_t *pData, uint16_t Size){
+void AtDeviceInit(void){
+
 
 
 }
 
-void SendAtCommand(char *command, char *reply, uint16_t delay,int *status) {
+int DeviceSendCommand(void* device, uint8_t *pData, uint16_t Size){
 
-    DeviceSendCommand(NULL,(unsigned char *)command,(uint16_t) strlen(command));
+
+}
+
+int SendAtCommand(char *command, char *reply, uint16_t delay){
+
+    int status = -1;
+
+    status = DeviceSendCommand(NULL,(unsigned char *)command,(uint16_t) strlen(command));
 
 #if OS_RTOS
     osDelay(delay);
@@ -33,10 +41,10 @@ void SendAtCommand(char *command, char *reply, uint16_t delay,int *status) {
 
     if (strstr(mqtt_buffer, reply) != NULL) {
         clearRxBuffer();
-        *status = -1;
-        return;
+        status = -1;
+        return status;
     }
     clearRxBuffer();
-    *status = 1;
-    return; 
+    status = 1;
+    return status; 
 }

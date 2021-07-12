@@ -240,7 +240,7 @@ int linux_at_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
 
 
 
-	return rc;
+	return 0;
 }
 
 
