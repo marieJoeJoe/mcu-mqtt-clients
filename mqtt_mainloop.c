@@ -34,11 +34,22 @@ int main(int argc, char *argv[])
 
 #if defined(SOCKET_AT)
 
+#include "MQTTAtSocket.h"
+
 int main(int argc, char *argv[])
 {
+
+    AtDeviceInit();
+
     while (1) {
-        printf("[mqtt socket at]\n");
-        sleep(3);
+        //AtDeviceWrite(getAtUartFd(),"at\r\n",sizeof("at\r\n"));
+        //sssssssAtDeviceRead(getAtUartFd());
+        //printf("[mqtt socket at]\n");
+        //sleep(1);
+        //AtDeviceWrite(getAtUartFd(),"ati\r\n",sizeof("ati\r\n"));
+        //AtDeviceRead(getAtUartFd());
+        AtSocket("***,***.***.***","*****");
+        sleep(1);
     }
 
     return 0;
