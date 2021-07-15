@@ -29,20 +29,33 @@ char *atAckList[]={
 };
 */
 
+typedef struct retstr
+{
+    char** ret_str_list;
+    int ret_str_num;
+}at_ret_strings_t;
 
-int getAtUartFd(void);
 
-void AtDeviceInit(void);
-void AtDeviceSendCommand(void* device, uint8_t *pData, uint16_t Size);
-int SendAtCommand(char *command, char *reply, uint16_t delay);
-int AtConnectHost(char*ip,char*port);
+
+
+
+
+int get_at_uart_fd(void);
+
+
+int at_socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms);
+int at_socket_write(Network* n, unsigned char* buffer, int len, int timeout_ms);
+void at_socket_disconnect(Network* n);
 
 
 //hardware uart rw basic api
-int AtDeviceRead(int device_fd);
-int AtDeviceWrite(int device_fd, unsigned char*cmd,int cmd_len);
+void atdevice_init(void);
+int atdevice_write(int device_fd, unsigned char*cmd,int cmd_len);
+int atdevice_read(int device_fd,char *retstr);
 
-int AtSocket(char* ipaddr,char *port);
+int at_socket_init(char* ipaddr,char *port);
+int at_retstr_split(char* pkt,at_ret_strings_t* ret);
+void at_retstr_free(at_ret_strings_t* ret);
 
 
 #endif
