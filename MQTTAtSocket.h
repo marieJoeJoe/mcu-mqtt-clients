@@ -50,12 +50,13 @@ void at_socket_disconnect(Network* n);
 
 //hardware uart rw basic api
 void atdevice_init(void);
-int atdevice_write(int device_fd, unsigned char*cmd,int cmd_len);
+int atdevice_write(int device_fd, char*cmd,int cmd_len);
 int atdevice_read(int device_fd,char *retstr);
 
 int at_socket_init(char* ipaddr,char *port, int conn_mode);
 int at_retstr_split(char* pkt,at_ret_strings_t* ret);
 void at_retstr_free(at_ret_strings_t* ret);
-int at_retstr_print(at_ret_strings_t* ret);
+void at_retstr_print(at_ret_strings_t* ret);
+int socket_conn_check(int sockid, char* ipaddr, char* port);
 
 #endif

@@ -357,7 +357,7 @@ int waitfor(Client* c, int packet_type, Timer* timer)
 int MQTT_Init(void) {
 
 
-
+  return 0;
 }
 
 

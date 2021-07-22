@@ -80,7 +80,7 @@ static void at_tcp_ip_errcode_parse(int result)//TCP/IP_QIGETERROR
 void atdevice_init(void)
 {
 
-  struct termios tty, tty_old;
+  struct termios tty;//, tty_old;
 
   memset(&tty,0,sizeof tty);
   
@@ -93,7 +93,7 @@ void atdevice_init(void)
     printf("Error %d from tcgetattr %s\n",errno,strerror(errno));
   }
   /* Save old tty parameters */
-  tty_old = tty;
+  //tty_old = tty;
 
   /* Set Baud Rate */
   cfsetospeed (&tty, (speed_t)B115200);
@@ -120,13 +120,15 @@ void atdevice_init(void)
   }
 }
 
-int atdevice_write( int device_fd, unsigned char*cmd, int cmd_len )
+int atdevice_write( int device_fd, char*cmd, int cmd_len )
 {
   int n_written = 0;
   do {
     n_written = write( device_fd, cmd, cmd_len );
-    //printf("[cmd_len:%d] %s\n",n_written,cmd);
+    printf("[cmd_len:%d] %s\n",n_written,cmd);
   } while (0);
+
+  return 0;
 }
 
 
@@ -156,13 +158,16 @@ int atdevice_read( int device_fd, char *retstr )
     strncpy(retstr, response, retstrlen);
     free(response);
     //printf("%s\n", last_line);
-    return ;
+    return retstrlen;
   }
+
+  return 0;
 }
 
 int device_send_command(void* device, uint8_t *pData, uint16_t Size){
 
 
+  return 0;
 }
 
 int send_at_command(char *command, char *reply, uint16_t delay){
@@ -246,7 +251,7 @@ int at_socket_write(int socketfd, unsigned char* buffer, int len){
 void at_socket_disconnect(Network* n)
 {
 
-  return 0;
+
 }
 
 void at_socket_reset(int socketfd)
@@ -369,7 +374,7 @@ int socket_conn_check(int sockid, char* ipaddr, char* port){
 }
 
 
-int at_retstr_print(at_ret_strings_t* ret)
+void at_retstr_print(at_ret_strings_t* ret)
 {
   printf("ret %d lines:\n",ret->ret_str_num);
   for(int i = 0; i<ret->ret_str_num; i++){
@@ -381,7 +386,7 @@ int at_retstr_print(at_ret_strings_t* ret)
 int at_retstr_split(char* pkt, at_ret_strings_t *ret)
 {
   if(0!= ret->ret_str_num) ret->ret_str_num = 0;
-  char *last_line,*line = strtok(pkt, enter_token);
+  char *last_line = NULL,*line = strtok(pkt, enter_token);
   int line_count = 0;
   //printf("%s\n", line);
   // Keep printing tokens while one of the
@@ -397,6 +402,8 @@ int at_retstr_split(char* pkt, at_ret_strings_t *ret)
     line = strtok(NULL, enter_token);
   }
   ret->ret_str_num = line_count;
+
+  return 1;
 }
 
 

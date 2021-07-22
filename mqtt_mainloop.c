@@ -1,4 +1,6 @@
 #include "mqtt_app.h"
+#include "cpe_info.h"
+
 #include "os_config.h"
 
 #if defined(OS_LINUX)
@@ -25,14 +27,23 @@ int main(int argc, char *argv[])
         //sleep(3);
     //}
 
-    printf("term_online_report_t %d\n",sizeof(term_online_report_t));
-    printf("term_online_report_t %d\n",sizeof(term_cyclic_report_t));
-    printf("term_online_report_t %d\n",sizeof(term_info_replay_t));
+    //printf("term_online_report_t %ld\n",sizeof(term_online_report_t));
+    //printf("term_online_report_t %ld\n",sizeof(term_cyclic_report_t));
+    //printf("term_online_report_t %ld\n",sizeof(term_info_replay_t));
 
     term_online_report_t term_online_status;
 
+    memset(&term_online_status,'\0',sizeof(term_online_status));
 
+    get_online_status(&term_online_status);
 
+    printf("%s\n",term_online_status.cpe_id);
+    printf("%s\n",term_online_status.imsi);
+    printf("%s\n",term_online_status.vendor_name);
+    printf("%s\n",term_online_status.cpe_ip);
+    printf("%s\n",term_online_status.modem_version);
+    printf("%s\n",term_online_status.product_type);
+    printf("%s\n",term_online_status.cell_id);
     return 0;
 }
 
