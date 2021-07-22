@@ -11,27 +11,19 @@
 
 int main(int argc, char *argv[])
 {
-    //pthread_t thread_ID;		//linux thread id
+    pthread_t thread_ID;		//linux thread id
 
-    //pthread_create(&thread_ID, NULL, &mqtt_task_thread, NULL);
-    //pthread_detach(thread_ID);
+    pthread_create(&thread_ID, NULL, &mqtt_task_thread, NULL);
+    pthread_detach(thread_ID);
 
-    //char device_online_msg[20] = {'\0'};
-    //int msg_count = 0;
-    //while (1) {
-        //memset(msg,'\0',sizeof(msg));
-        //sprintf(msg,"[mqtt_msg] %d",msg_count++);
-        //mqtt_data_write(msg, strlen(msg), 0);
-        //sleep(3);
-    //}
-
-    printf("term_online_report_t %d\n",sizeof(term_online_report_t));
-    printf("term_online_report_t %d\n",sizeof(term_cyclic_report_t));
-    printf("term_online_report_t %d\n",sizeof(term_info_replay_t));
-
-    term_online_report_t term_online_status;
-
-
+    char msg[20] = {'\0'};
+    int msg_count = 0;
+    while (1) {
+        memset(msg,'\0',sizeof(msg));
+        sprintf(msg,"[mqtt_msg] %d",msg_count++);
+        mqtt_data_write(msg, strlen(msg), 0);
+        sleep(3);
+    }
 
     return 0;
 }

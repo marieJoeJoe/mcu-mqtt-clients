@@ -1,12 +1,20 @@
 #include "MQTTAtSocket.h"
 
-
 #define MAX_AT_SOCKET 10
 
-int atSocketFd[MAX_AT_SOCKET] = {2,3,4,5,6,7,8,9,10,11};
+#define DBG_ABORT(STR)                                \
+        do{                                           \
+          printf("[%s]: %s\n",__FUNCTION__,(STR));    \
+          abort();                                    \
+        }while(0)
+
+int atSocketFd[MAX_AT_SOCKET] = {1,2,3,4,5,6,7,8,9,10};
+
+#define LOG_D(...) printf(__VA_ARGS__)
+#define LOG_E(...) printf(__VA_ARGS__)
+#define LOG_W(...) printf(__VA_ARGS__)
 
 static unsigned int at_socket_ocu = -1;
-
 
 uint8_t rx_data = 0;
 uint8_t rx_buffer[1460] = {0};
@@ -28,17 +36,51 @@ int get_at_sock_ocu(void){
     return at_socket_ocu;
 }
 
-
 void clear_rx_buffer(void) {
     rx_index = 0;
     memset(rx_buffer, 0, sizeof(rx_buffer));
 }
 
+static void at_tcp_ip_errcode_parse(int result)//TCP/IP_QIGETERROR
+{
+    switch(result)
+    {
+    case 0   : LOG_D("%d : Operation successful\n",         result); break;
+    case 550 : LOG_E("%d : Unknown error\n",                result); break;
+    case 551 : LOG_E("%d : Operation blocked\n",            result); break;
+    case 552 : LOG_E("%d : Invalid parameters\n",           result); break;
+    case 553 : LOG_E("%d : Memory not enough\n",            result); break;
+    case 554 : LOG_E("%d : Create socket failed\n",         result); break;
+    case 555 : LOG_E("%d : Operation not supported\n",      result); break;
+    case 556 : LOG_E("%d : Socket bind failed\n",           result); break;
+    case 557 : LOG_E("%d : Socket listen failed\n",         result); break;
+    case 558 : LOG_E("%d : Socket write failed\n",          result); break;
+    case 559 : LOG_E("%d : Socket read failed\n",           result); break;
+    case 560 : LOG_E("%d : Socket accept failed\n",         result); break;
+    case 561 : LOG_E("%d : Open PDP context failed\n",      result); break;
+    case 562 : LOG_E("%d : Close PDP context failed\n",     result); break;
+    case 563 : LOG_W("%d : Socket identity has been used\n", result); break;
+    case 564 : LOG_E("%d : DNS busy\n",                     result); break;
+    case 565 : LOG_E("%d : DNS parse failed\n",             result); break;
+    case 566 : LOG_E("%d : Socket connect failed\n",        result); break;
+    // case 567 : LOG_W("%d : Socket has been closed",       result); break;
+    case 567 : break;
+    case 568 : LOG_E("%d : Operation busy\n",               result); break;
+    case 569 : LOG_E("%d : Operation timeout\n",            result); break;
+    case 570 : LOG_E("%d : PDP context broken down\n",      result); break;
+    case 571 : LOG_E("%d : Cancel send\n",                  result); break;
+    case 572 : LOG_E("%d : Operation not allowed\n",        result); break;
+    case 573 : LOG_E("%d : APN not configured\n",           result); break;
+    case 574 : LOG_E("%d : Port busy\n",                    result); break;
+    default  : LOG_E("%d : Unknown err code\n",             result); break;
+    }
+}
+
+
 void atdevice_init(void)
 {
 
-  struct termios tty;
-  struct termios tty_old;
+  struct termios tty, tty_old;
 
   memset(&tty,0,sizeof tty);
   
@@ -65,7 +107,7 @@ void atdevice_init(void)
 
   tty.c_cflag     &=  ~CRTSCTS;           // no flow control
   tty.c_cc[VMIN]   =  1;                  // read doesn't block
-  tty.c_cc[VTIME]  =  5;                  // 0.5 seconds read timeout
+  tty.c_cc[VTIME]  =  20;                  // 0.5 seconds read timeout
   tty.c_cflag     |=  CREAD | CLOCAL;     // turn on READ & ignore ctrl lines
 
   /* Make raw */
@@ -78,7 +120,7 @@ void atdevice_init(void)
   }
 }
 
-int atdevice_write(int device_fd, unsigned char*cmd,int cmd_len)
+int atdevice_write( int device_fd, unsigned char*cmd, int cmd_len )
 {
   int n_written = 0;
   do {
@@ -88,7 +130,7 @@ int atdevice_write(int device_fd, unsigned char*cmd,int cmd_len)
 }
 
 
-int atdevice_read(int device_fd,char *retstr)
+int atdevice_read( int device_fd, char *retstr )
 {
   int n = 0,retstrlen=0;
 
@@ -103,43 +145,20 @@ int atdevice_read(int device_fd,char *retstr)
     n = read( device_fd, response, 1024);
   }while(0);
 
-  printf("[%d]\n",n);
+  //printf("[%s %d]\n",__FUNCTION__,n);
 
   if(n < 0){
     printf("Error reading: %s\n",strerror(errno));
   }else if(n == 0) {
     printf("Read nothing!\n");
   }else {
-    //printf("Resp: %d\n%s\n",strlen(response),response);
-    //printf("\n");
-    //for(int i=0; i< strlen(response)+1; i++){
-        //printf("%c ",response[i]);
-        //if(0 == i%64) printf("\n");
-    //}
-    //printf("\n");
-    //for(int i=0; i< strlen(response)+1; i++){
-        //printf("%02x ",response[i]);
-        //if(0 == i%64) printf("\n");
-    //}
-    //char *last_line,*line = strtok(response, enter_token);
-    //printf("%s\n", line);
-    // Keep printing tokens while one of the
-    // delimiters present in str[].
-    //while (line != NULL)
-    //{
-        //printf("%s\n", line);
-        //last_line = line;
-        //line = strtok(NULL, enter_token);
-        //if(NULL == line)
-    //}
     retstrlen = strlen(response);
-    strncpy(retstr,response,retstrlen);
+    strncpy(retstr, response, retstrlen);
     free(response);
     //printf("%s\n", last_line);
     return ;
   }
 }
-
 
 int device_send_command(void* device, uint8_t *pData, uint16_t Size){
 
@@ -171,17 +190,56 @@ int send_at_command(char *command, char *reply, uint16_t delay){
 }
 
 
-int at_socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms){
+int at_socket_read(int socketfd, unsigned char* buffer, int len, int timeout_ms){
 
-  return -1;
+  char at_retstr[1024];
+  at_ret_strings_t ars;
 
+  if(-1 == socketfd){
+    printf("socketfd %d error !\n",socketfd);
+  }
+
+  memset(at_retstr, '\0', sizeof(at_retstr));
+  memset(&ars, 0, sizeof(at_ret_strings_t));
+
+  atdevice_read(get_at_uart_fd(), at_retstr);
+
+  at_retstr_split(at_retstr,&ars);
+
+  at_retstr_print(&ars);
+
+  at_retstr_free(&ars);
+
+  return 0;
 }
 
+int at_socket_write(int socketfd, unsigned char* buffer, int len){
 
-int at_socket_write(Network* n, unsigned char* buffer, int len, int timeout_ms){
+  char at_send_cmd[128];
+  char at_retstr[1024];
+  at_ret_strings_t ars;
 
-  return -1;
   
+  if(-1 == socketfd){
+    printf("socketfd %d error !\n",socketfd);
+  }
+
+  memset(at_send_cmd,0,sizeof at_send_cmd);
+  memset(at_retstr,'\0',sizeof at_retstr);
+  memset(&ars,0,sizeof(at_ret_strings_t));
+
+  sprintf(at_send_cmd,"at+qisend=%d,%d,%s\\0x1a",socketfd,len,buffer);
+  //printf("%s len %ld\n",at_send_cmd,strlen(at_send_cmd));
+  atdevice_write(get_at_uart_fd(), at_send_cmd, strlen(at_send_cmd));
+  sleep(2);
+  atdevice_read(get_at_uart_fd(), at_retstr);
+  //printf("[%s] %s\n",__FUNCTION__, at_retstr);
+  at_retstr_split(at_retstr,&ars);
+
+  at_retstr_print(&ars);
+  at_retstr_free(&ars);
+
+  return 0;
 }
 
 
@@ -189,45 +247,125 @@ void at_socket_disconnect(Network* n)
 {
 
   return 0;
+}
 
+void at_socket_reset(int socketfd)
+{
+
+  char at_reset_cmd[128];
+  char at_retstr[512];
+  //at_ret_strings_t ars;
+
+  memset(at_reset_cmd,0,sizeof at_reset_cmd);
+  memset(at_retstr,'\0',sizeof at_retstr);
+  //memset(&ars,0,sizeof(at_ret_strings_t));
+  sprintf(at_reset_cmd,"at+qiclose=%d\r\n",socketfd);
+  atdevice_write(get_at_uart_fd(), at_reset_cmd, strlen(at_reset_cmd));
+}
+
+void at_module_reset(void)
+{
+  atdevice_write(get_at_uart_fd(), "at+cfun=1\r\n", strlen("at+cfun=1\r\n"));
 }
 
 
-int at_socket_init(char* ipaddr,char *port){
+
+int at_socket_init(char* ipaddr,char *port, int conn_mode){
 
   char at_connect_cmd[128];
   char at_retstr[1024];
   at_ret_strings_t ars;
 
-
+  int reset_count = 5, socket_stat = -1;
   int sockid = atSocketFd[++at_socket_ocu];
-  
-  //if(-1==at_socket_ocu){
-    //sockid = atSocketFd[0];
-    //++at_socket_ocu;
-  //}else{
-    //sockid = atSocketFd[++at_socket_ocu];
-  //}
+  if(sockid >= MAX_AT_SOCKET) return -1;
+  //printf("[%s]sockid %d\n",__FUNCTION__,sockid);
+
+  while(reset_count-- > 0){
+    //printf("[%s]loop %d\n",__FUNCTION__,reset_count);
+    memset(at_connect_cmd,0,sizeof at_connect_cmd);
+    memset(at_retstr,'\0',sizeof at_retstr);
+    memset(&ars,0,sizeof(at_ret_strings_t));
+    //sprintf(at_connect_cmd,"at+qiopen=1,%d,\"TCP\",\"%s\",%s,0,%d\r\n",sockid,ipaddr,port,conn_mode);
+    sprintf(at_connect_cmd,"at+qiopen=1,%d,\"TCP\",\"%s\",%s,0,%d\r\n",sockid,ipaddr,port,conn_mode);   
+    //printf("[%s] %s\n",__FUNCTION__, at_connect_cmd);
+    atdevice_write(get_at_uart_fd(), at_connect_cmd, strlen(at_connect_cmd));
+    //atdevice_write(get_at_uart_fd(), "\r\n", sizeof("\r\n"));
+    sleep(0.5);
+    atdevice_read(get_at_uart_fd(), at_retstr);
+    //printf("[%s] %s\n",__FssUNCTION__, at_retstr);
+    at_retstr_split(at_retstr, &ars);
+    //at_retstr_print(&ars);
+    int ret = 0, ret_socketfd = -1, ret_code = -1;
+    //printf("%s\n",ars.ret_str_list[ars.ret_str_num-1]);
+    ret = sscanf(ars.ret_str_list[ars.ret_str_num - 1], "+QIOPEN: %d,%d", &ret_socketfd, &ret_code);
+
+    //printf("[%s] ret %d socketfd %d ret_code %d\n", __FUNCTION__, ret, ret_socketfd, ret_code);
+
+    if( 0 == ret){
+      socket_stat = socket_conn_check(sockid,ipaddr,port);
+      if((2 == socket_stat)||(1 == socket_stat)){
+        ret_code = 0;
+      }else{
+        DBG_ABORT("qiopen return message do not correct!!");
+      }
+    }
+
+    if(sockid == ret_socketfd){
+        if( 0 == ret_code ){
+          at_retstr_free(&ars);
+          return ret_socketfd;
+        }
+        at_tcp_ip_errcode_parse(ret_code);
+        if( 563 ==  ret_code )
+        {
+          at_socket_reset(sockid);
+          sleep(3);
+        }
+    }
+    at_retstr_free(&ars);
+  }
+  at_module_reset();
+  DBG_ABORT("retry count expired, reset module !!");
+
+  return -1;
+}
+
+int socket_conn_check(int sockid, char* ipaddr, char* port){
+
+  char at_connect_cmd[128];
+  char at_retstr[256];
+  char sscanf_str[256];
+  at_ret_strings_t ars;
 
   memset(at_connect_cmd,0,sizeof at_connect_cmd);
   memset(at_retstr,'\0',sizeof at_retstr);
   memset(&ars,0,sizeof(at_ret_strings_t));
-  sprintf(at_connect_cmd,"AT+QIOPEN=1,%d,\"TCP\",\"%s\",%s,0,0",atSocketFd[++at_socket_ocu],ipaddr,port);
-  //printf("%d,%d\n",at_socket_ocu,atSocketFd[at_socket_ocu]);
-  if(atSocketFd[at_socket_ocu] >= MAX_AT_SOCKET) return -1;
-  //printf("%s\n",at_connect_cmd);
-  printf("[%s] %s\n",__FUNCTION__,at_connect_cmd);
-  atdevice_write(get_at_uart_fd(), at_connect_cmd, strlen(at_connect_cmd)+1);
-  atdevice_write(get_at_uart_fd(), "\r\n", sizeof("\r\n"));
-  sleep(2);
-  atdevice_read(get_at_uart_fd(),at_retstr);
-  printf("[%s] %s\n",__FUNCTION__,at_retstr);
-  at_retstr_split(at_retstr,&ars);
+  sprintf(at_connect_cmd,"AT+QISTATE=1,%d\r\n",sockid);
+  //printf("[%s] %s\n",__FUNCTION__, at_connect_cmd);
+
+  atdevice_write(get_at_uart_fd(), at_connect_cmd, strlen(at_connect_cmd));
+  //sleep(3);
+  atdevice_read(get_at_uart_fd(), at_retstr);
+  //printf("[%s] %s\n",__FUNCTION__, at_retstr);
+  at_retstr_split(at_retstr, &ars);
+  int ret = -1, local_port = 0, socket_stat = -1, srv_id = -1, id4 = -1, id5 = -1;
+  //printf("%s\n",ars.ret_str_list[ars.ret_str_num-1]);
+
+  memset( sscanf_str, '\0', sizeof(sscanf_str));
+
+  sprintf(sscanf_str,"+QISTATE: %d,\"TCP\",\"%s\",%s,%s,%s,%s,%s,%s,\"usbmodem\"",sockid,ipaddr,port,"%d","%d","%d","%d","%d");
+
+  printf("%s\n",sscanf_str);
+
+  ret = sscanf(ars.ret_str_list[0], sscanf_str , &local_port, &socket_stat, &srv_id, &id4, &id5);
 
   at_retstr_print(&ars);
+  at_retstr_free(&ars);
 
-  return atSocketFd[at_socket_ocu];
+  printf("%d %d %d %d %d %d \n",ret, local_port, socket_stat, srv_id, id4, id5);
 
+  return socket_stat;
 }
 
 
@@ -264,25 +402,13 @@ int at_retstr_split(char* pkt, at_ret_strings_t *ret)
 
 void at_retstr_free(at_ret_strings_t* ret)
 {
-
-/*
-  char* pn=NULL;
-  printf("line_num %d %p\n",ret->ret_str_num,ret->ret_str_list);
+  if(NULL==ret) return;
 
   for(int i = 0; i < ret->ret_str_num; i++){
-    pn = ret->ret_str_list[i];
-    printf("%p\n",pn);
-  }
-*/
-
-  for(int i = 0; i < ret->ret_str_num; i++){
-    //pn = ret->ret_str_list[i];
     free(ret->ret_str_list[i]);
-    //printf("%p\n",pn);
-    //free(pn);
-    //ret->ret_str_list[i]=NULL;
   }
   free(ret->ret_str_list);
-  //ret->ret_str_list=NULL;
 }
+
+
 

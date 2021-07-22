@@ -16,10 +16,10 @@
 #define MQTT_TOPIC_SIZE     (128)		// topic length limit
 #define MQTT_BUF_SIZE       (8 * 1024) 	//mqtt buffer size
 
-#define MQTT_HOST "***.***.***.***"		//ip addr
+#define MQTT_HOST "47.106.204.139"		//ip addr
 #define MQTT_PORT 1883					//port
-#define MQTT_USER "****"				//user
-#define MQTT_PASS "****"			//passwd
+#define MQTT_USER "helloMQTT"				//user
+#define MQTT_PASS "ackmqtt"			//passwd
 #define MQTT_CLIENT_ID_PC_LINUX    "mcu-mqtt-client-pc-linux"		//client id
 #define MQTT_CLIENT_ID_PC_LINUX_AT "mcu-mqtt-client-pc-linux-at"		//client id
 #define MQTT_CLIENT_ID_MCU_RTOS_AT "mcu-mqtt-client-mcu-rtos-at"		//client id
@@ -57,7 +57,7 @@ struct opts_struct {
     int     port;
     int     showtopics;
 } opts = {
-    (char *)MQTT_CLIENT_ID_PC_LINUX, 0, (char *)"\n", QOS0, MQTT_USER, MQTT_PASS, (char *)MQTT_HOST, MQTT_PORT, 0
+    (char *)MQTT_CLIENT_ID_PC_LINUX, 0, (char *)"\n", QOS2, MQTT_USER, MQTT_PASS, (char *)MQTT_HOST, MQTT_PORT, 0
 };
 
 Cloud_MQTT_t Iot_mqtt;

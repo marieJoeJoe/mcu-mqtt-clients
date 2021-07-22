@@ -1,6 +1,6 @@
 #define OS_LINUX
-//#define SOCKET_LINUX
-#define SOCKET_AT
+#define SOCKET_LINUX
+//#define SOCKET_AT
 
 
 //#define OS_RTOS

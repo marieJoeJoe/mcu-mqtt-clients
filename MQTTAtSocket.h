@@ -43,8 +43,8 @@ typedef struct retstr
 int get_at_uart_fd(void);
 
 
-int at_socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms);
-int at_socket_write(Network* n, unsigned char* buffer, int len, int timeout_ms);
+int at_socket_read(int socketfd, unsigned char* buffer, int len, int timeout_ms);
+int at_socket_write(int socketfd, unsigned char* buffer, int len);
 void at_socket_disconnect(Network* n);
 
 
@@ -53,9 +53,9 @@ void atdevice_init(void);
 int atdevice_write(int device_fd, unsigned char*cmd,int cmd_len);
 int atdevice_read(int device_fd,char *retstr);
 
-int at_socket_init(char* ipaddr,char *port);
+int at_socket_init(char* ipaddr,char *port, int conn_mode);
 int at_retstr_split(char* pkt,at_ret_strings_t* ret);
 void at_retstr_free(at_ret_strings_t* ret);
-
+int at_retstr_print(at_ret_strings_t* ret);
 
 #endif
