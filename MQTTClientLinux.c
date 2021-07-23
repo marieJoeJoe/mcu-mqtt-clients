@@ -337,7 +337,6 @@ int MQTTYield(Client* c, int timeout_ms)
     return rc;
 }
 
-
 // only used in single-threaded mode where one command at a time is in process
 int waitfor(Client* c, int packet_type, Timer* timer)
 {
@@ -366,17 +365,16 @@ int MQTTConnect(Client* c, MQTTPacket_connectData* options)
     Timer connect_timer;
     int rc = FAILURE;
     MQTTPacket_connectData default_options = MQTTPacket_connectData_initializer;
+
     int len = 0;
-    
     InitTimer(&connect_timer);
     countdown_ms(&connect_timer, c->command_timeout_ms);
 
     if (c->isconnected) // don't send connect packet again if we are already connected
         goto exit;
 
-    if (options == 0)
-        options = &default_options; // set default options if none were supplied
-    
+    if (options == 0) options = &default_options; // set default options if none were supplied
+
     c->keepAliveInterval = options->keepAliveInterval;
     countdown(&c->ping_timer, c->keepAliveInterval);
     printf("[%s]c->keepAliveInterval = %d\n", __FUNCTION__,c->keepAliveInterval);

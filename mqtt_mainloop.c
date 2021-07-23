@@ -11,39 +11,23 @@
 
 #if defined(SOCKET_LINUX)
 
+
 int main(int argc, char *argv[])
 {
-    //pthread_t thread_ID;		//linux thread id
 
-    //pthread_create(&thread_ID, NULL, &mqtt_task_thread, NULL);
-    //pthread_detach(thread_ID);
+    init_cpe_hw_info();
 
-    //char device_online_msg[20] = {'\0'};
-    //int msg_count = 0;
-    //while (1) {
-        //memset(msg,'\0',sizeof(msg));
-        //sprintf(msg,"[mqtt_msg] %d",msg_count++);
-        //mqtt_data_write(msg, strlen(msg), 0);
-        //sleep(3);
-    //}
+    pthread_t t_cyclic_report, t_inst_reply;//linux thread id
 
-    //printf("term_online_report_t %ld\n",sizeof(term_online_report_t));
-    //printf("term_online_report_t %ld\n",sizeof(term_cyclic_report_t));
-    //printf("term_online_report_t %ld\n",sizeof(term_info_replay_t));
+    //pthread_create(&t_inst_reply, NULL, &mqtt_inst_reply_task_thread, NULL);
+    pthread_create(&t_cyclic_report, NULL, &mqtt_cyclic_report_task_thread, NULL);
 
-    term_online_report_t term_online_status;
+    //test_get_online_status();
 
-    memset(&term_online_status,'\0',sizeof(term_online_status));
+    //test_get_cyclic_ststus();
 
-    get_online_status(&term_online_status);
-
-    printf("%s\n",term_online_status.cpe_id);
-    printf("%s\n",term_online_status.imsi);
-    printf("%s\n",term_online_status.vendor_name);
-    printf("%s\n",term_online_status.cpe_ip);
-    printf("%s\n",term_online_status.modem_version);
-    printf("%s\n",term_online_status.product_type);
-    printf("%s\n",term_online_status.cell_id);
+    //test_get_cpe_hw_info();
+    while(1);
     return 0;
 }
 

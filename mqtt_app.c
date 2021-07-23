@@ -18,11 +18,17 @@
 
 #define MQTT_HOST "47.106.204.139"		//ip addr
 #define MQTT_PORT 1883					//port
+
 #define MQTT_USER "helloMQTT"				//user
 #define MQTT_PASS "ackmqtt"			//passwd
 #define MQTT_CLIENT_ID_PC_LINUX    "mcu-mqtt-client-pc-linux"		//client id
 #define MQTT_CLIENT_ID_PC_LINUX_AT "mcu-mqtt-client-pc-linux-at"		//client id
 #define MQTT_CLIENT_ID_MCU_RTOS_AT "mcu-mqtt-client-mcu-rtos-at"		//client id
+
+
+#define TERM_MQTT_USER "terminal"			//user
+#define TERM_MQTT_PASS "termackmqtt"			//passwd
+#define TERM_MQTT_CLIENT_ID_PC_LINUX    "term-mqtt-client-linux"		//client id
 
 typedef struct {
     Network Network;
@@ -60,6 +66,22 @@ struct opts_struct {
     (char *)MQTT_CLIENT_ID_PC_LINUX, 0, (char *)"\n", QOS2, MQTT_USER, MQTT_PASS, (char *)MQTT_HOST, MQTT_PORT, 0
 };
 
+struct term_opts_struct {
+    char    *clientid;
+    int     nodelimiter;
+    char    *delimiter;
+    enum    QoS qos;
+    char    *username;
+    char    *password;
+    char    *host;
+    int     port;
+    int     showtopics;
+} term_opts = {
+    (char *)TERM_MQTT_CLIENT_ID_PC_LINUX, 0, (char *)"\n", QOS2, TERM_MQTT_USER, TERM_MQTT_PASS, (char *)MQTT_HOST, MQTT_PORT, 0
+};
+
+
+
 Cloud_MQTT_t Iot_mqtt;
 
 iot_device_info_t gateway = {
@@ -67,6 +89,9 @@ iot_device_info_t gateway = {
     .model = {"hello"},
     .company = {"/world"}
 };
+
+Cloud_MQTT_t cyclic_mqtt;
+
 
 
 void iot_mqtt_init(Cloud_MQTT_t *piot_mqtt) 
@@ -142,6 +167,59 @@ int mqtt_device_connect(Cloud_MQTT_t *piot_mqtt)
 __END:
     return ret;
 }
+
+int term_mqtt_device_connect(Cloud_MQTT_t *piot_mqtt)
+{
+    int rc = 0, ret = 0;
+
+    NewNetwork(&piot_mqtt->Network);
+
+    //printf("topic = %s\n", piot_mqtt->sub_topic);
+
+    rc = ConnectNetwork(&piot_mqtt->Network, MQTT_HOST, (int)MQTT_PORT);	
+    if (rc != 0) {
+        printf("mqtt connect network fail \n");
+        ret = -101;
+        goto __END;
+    }
+    MQTTClient(&piot_mqtt->Client, &piot_mqtt->Network, 1000, piot_mqtt->mqtt_buffer, MQTT_BUF_SIZE, piot_mqtt->mqtt_read_buffer, MQTT_BUF_SIZE);
+    MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+
+    if (piot_mqtt->willFlag) {
+        data.willFlag = 1;
+        memcpy(&data.will, &piot_mqtt->will, sizeof(MQTTPacket_willOptions));
+    } else {
+        data.willFlag = 0;
+    }
+    data.MQTTVersion = 3;
+    data.clientID.cstring = TERM_MQTT_CLIENT_ID_PC_LINUX;
+    data.username.cstring = TERM_MQTT_USER;
+    data.password.cstring = TERM_MQTT_PASS;
+    data.keepAliveInterval = 30;
+    data.cleansession = 1;
+    
+    rc = MQTTConnect(&piot_mqtt->Client, &data);
+    if (rc) {
+        printf("mqtt connect broker fail \n");
+        printf("rc = %d\n", rc);
+        ret = -102;
+        goto __END;
+    }
+    //rc = MQTTSubscribe(&piot_mqtt->Client, piot_mqtt->sub_topic, opts.qos, MQTTMessageArrived_Cb);
+    //rc = MQTTSubscribe(&piot_mqtt->Client, piot_mqtt->sub_topic, term_opts.qos, MQTTMessageArrived_Cb);
+/*
+    if (rc) {
+        printf("mqtt subscribe fail \n");
+        ret = -105;
+        goto __END;
+    }
+    //gateway.iotstatus = IOT_STATUS_CONNECT;
+    printf("Subscribed %d\n", rc);
+*/
+__END:
+    return ret;
+}
+
 
 int mqtt_device_disconnect(Cloud_MQTT_t *piot_mqtt)
 {
@@ -250,4 +328,42 @@ void * mqtt_task_thread(void *arg)
     while (1){
         iot_yield(&Iot_mqtt);
     }
+}
+
+
+void * mqtt_cyclic_report_task_thread(void *arg)
+{
+
+    int ret, len; 
+    char will_msg[256] = {"[mqtt_cyclic::say goodbye!]"};//initializ will data
+
+    //iot_mqtt_init(&Iot_mqtt);//initial topic
+
+    memset(&cyclic_mqtt, '\0', sizeof(Cloud_MQTT_t));
+
+    sprintf(cyclic_mqtt.pub_topic, "%s%s", TOPICX, TPOICA);	//set pub topic
+    //printf("pub:%s\n", piot_mqtt->pub_topic);
+
+    mqtt_will_msg_set(&cyclic_mqtt, will_msg, strlen(will_msg));
+
+    ret = term_mqtt_device_connect(&cyclic_mqtt);
+    while (ret < 0) {
+        printf("ret = %d\r\n", ret);
+        sleep(3);
+        ret = term_mqtt_device_connect(&cyclic_mqtt);
+    }
+
+    while (1){
+        iot_yield(&cyclic_mqtt);
+    }
+
+}
+
+void * mqtt_inst_reply_task_thread(void* arg)
+{
+
+  while(1){
+      sleep(3);
+      printf("%s\n",__func__);
+  }
 }
