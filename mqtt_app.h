@@ -28,7 +28,6 @@ void mqtt_data_rx_cb(void *pbuf, int len);
 
 void *mqtt_task_thread(void *arg);
 
-
 void* mqtt_cyclic_report_task_thread(void *arg);
 
 void* mqtt_inst_reply_task_thread(void* arg);

@@ -1,5 +1,6 @@
 #include "mqtt_app.h"
 #include "cpe_info.h"
+#include "core_json.h"
 
 #include "os_config.h"
 
@@ -8,18 +9,19 @@
 #include <pthread.h>
 #include <unistd.h>
 
-
 #if defined(SOCKET_LINUX)
-
 
 int main(int argc, char *argv[])
 {
+
+    int ret = -1;
 
     init_cpe_hw_info();
 
     pthread_t t_cyclic_report, t_inst_reply;//linux thread id
 
-    //pthread_create(&t_inst_reply, NULL, &mqtt_inst_reply_task_thread, NULL);
+    pthread_create(&t_inst_reply, NULL, &mqtt_inst_reply_task_thread, NULL);
+
     pthread_create(&t_cyclic_report, NULL, &mqtt_cyclic_report_task_thread, NULL);
 
     //test_get_online_status();
@@ -27,13 +29,14 @@ int main(int argc, char *argv[])
     //test_get_cyclic_ststus();
 
     //test_get_cpe_hw_info();
+
     while(1);
+
     return 0;
+
 }
 
 #endif
-
-
 
 #if defined(SOCKET_AT)
 

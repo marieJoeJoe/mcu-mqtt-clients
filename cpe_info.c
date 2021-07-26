@@ -10,12 +10,12 @@ static int get_cpe_hw_info(void){
 
   cpe_hw_info.is_fillfulled = 1;
 
-  char* cpe_id = "cpe_id:283712";
-  char* cpe_imsi = "cpe:imsi";
-  char* cpe_vendor_name = "vendor_name:quectel";
-  char* s_version = "cpe:sw_ver:83920";
-  char* m_version = "cpe:mod_ver:57482";
-  char* p_type = "product_type:39";
+  char* cpe_id = "283712";
+  char* cpe_imsi = "123";
+  char* cpe_vendor_name = "quectel";
+  char* s_version = "83920";
+  char* m_version = "57482";
+  char* p_type = "39";
   //strncpy(, cpe_hw_info.cpe_id, strlen(cpe_id));
 
   //struct timeval utc_online;
@@ -115,11 +115,14 @@ static int get_location_info( char* location_info ){
   return SUCCESS;
 }
 
-static int get_online_time( int* online_time ){
+static long get_online_time(void){
 
-  *online_time = 162536;
+  struct timeval cur_time;
 
-  return SUCCESS;
+  gettimeofday( &cur_time, NULL );
+  printf("%ld,%ld,%ld\n",cpe_hw_info.start_online_time.tv_sec,cur_time.tv_sec,cur_time.tv_usec);
+
+  return cur_time.tv_sec - cpe_hw_info.start_online_time.tv_sec;
 }
 
 static int get_wan_recv_pkts_cnt( int* recv_pkts ){
@@ -175,27 +178,6 @@ int get_online_status(term_online_report_t* online_status){
 }
 
 
-
-int get_cyclic_status(term_cyclic_report_t* cyclic_status){
-
-  int status = 0, ret = -1;
-  //printf("debug\n");
-  get_cpe_id( cyclic_status->cpe_id);
-  //printf("debug\n");
-  get_location_info(cyclic_status->locationinfo );
-  //printf("debug\n");
-  get_online_time(&cyclic_status->online_time );
-  //printf("debug\n");
-  get_wan_recv_pkts_cnt(&cyclic_status->wanrpkts);
-  //printf("debug\n");
-  get_wan_send_pkts_cnt(&cyclic_status->wanspkts);
-  //printf("debug\n");
-  get_cpe_rsrp_rssi(&cyclic_status->rsrp_rssi );
-  //printf("debug\n");
-  get_cpe_sinr_rsrq(&cyclic_status->sinr_rsrq );
-  //printf("debug\n");
-  return SUCCESS;
-}
 void test_get_online_status(void){
 
     term_online_report_t term_online_status;
@@ -220,29 +202,53 @@ void test_get_online_status(void){
 
 }
 
-void test_get_cyclic_ststus(void){
-
-    term_cyclic_report_t term_cyclic_status;
-
-    memset(&term_cyclic_status,'\0',sizeof(term_cyclic_status));
-
-    get_cyclic_status(&term_cyclic_status);
-
-    printf("%s\n",term_cyclic_status.cpe_id);
-
-    printf("%s\n",term_cyclic_status.locationinfo);
-
-    printf("%d\n",term_cyclic_status.online_time);
-
-    printf("%d\n",term_cyclic_status.wanrpkts);
-
-    printf("%d\n",term_cyclic_status.wanspkts);
-
-    printf("%08x\n",term_cyclic_status.rsrp_rssi);
-
-}
-
 
 void init_cpe_hw_info(void){
   get_cpe_hw_info();
 }
+
+
+int create_cyclic_report_msg(char * msg){
+
+  if(NULL == msg) return -1;
+  //printf("debug\n");
+  /*            1   2             3                      4              5              6              7             8          9 */
+  sprintf(msg,"%s\"%s\":\"%s\",\"%s\":\"%d-%d-%d-%d\",\"%s\":\"%ld\",\"%s\":\"%lu\",\"%s\":\"%lu\",\"%s\":\"%d\",\"%s\":\"%d\"%s",\
+  /*sprintf(msg,"%s%s:%s,%s:%d-%d-%d-%d,%s:%lu,%s:%lu,%s:%lu,%s:%d,%s:%d%s",\*/
+/* 1 */       "{",\
+/* 2 */       "cpeid",cpe_hw_info.cpe_id,\
+/* 3 */       "locationinfo",0,0,0,0,\
+/* 4 */       "onlinetime",get_online_time(),\
+/* 5 */       "WanRPkts",128000,\
+/* 6 */       "WanSPkts",128001,\
+/* 7 */       "RSRP",9089,\
+/* 8 */       "RSSI",-89,\
+/* 9 */       "}");
+
+  return SUCCESS;
+
+}
+
+
+int create_online_report_msg(char * msg){
+
+  if(NULL == msg) return -1;
+  //printf("debug\n");
+  /*            1   2             3             4             5                      6              7             8              9          10*/
+  sprintf(msg,"%s\"%s\":\"%s\",\"%s\":\"%ld\",\"%s\":\"%s\",\"%s\":\"%d.%d.%d.%d\",\"%s\":\"%d\",\"%s\":\"%d\",\"%s\":\"%d\",\"%s\":\"%d\"%s",\
+  /*sprintf(msg,"%s%s:%s,%s:%d-%d-%d-%d,%s:%lu,%s:%lu,%s:%lu,%s:%d,%s:%d%s",\*/
+/* 1  */       "{",\
+/* 2  */       "CPEID",cpe_hw_info.cpe_id,\
+/* 3  */       "IMSI",46225062244429,\
+/* 4  */       "VendorName",cpe_hw_info.vendor_name,\
+/* 5  */       "CPEIP",10,10,111,24,\
+/* 6  */       "SWVersion",283791,\
+/* 7  */       "ModemVersion",1902,\
+/* 8  */       "ProductType",39,\
+/* 9  */       "CellID",3456,\
+/* 10 */       "}");
+
+  return SUCCESS;
+}
+
+
