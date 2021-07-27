@@ -24,12 +24,6 @@ int main(int argc, char *argv[])
 
     pthread_create(&t_cyclic_report, NULL, &mqtt_cyclic_report_task_thread, NULL);
 
-    //test_get_online_status();
-
-    //test_get_cyclic_ststus();
-
-    //test_get_cpe_hw_info();
-
     while(1);
 
     return 0;

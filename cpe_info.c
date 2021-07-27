@@ -120,101 +120,53 @@ static long get_online_time(void){
   struct timeval cur_time;
 
   gettimeofday( &cur_time, NULL );
-  printf("%ld,%ld,%ld\n",cpe_hw_info.start_online_time.tv_sec,cur_time.tv_sec,cur_time.tv_usec);
-
+  //printf("%ld,%ld,%ld\n",cpe_hw_info.start_online_time.tv_sec,cur_time.tv_sec,cur_time.tv_usec);
   return cur_time.tv_sec - cpe_hw_info.start_online_time.tv_sec;
 }
 
-static int get_wan_recv_pkts_cnt( int* recv_pkts ){
-
-  *recv_pkts = 12800;
+static int get_wan_recv_pkts_cnt( void ){
 
   return SUCCESS;
 }
 
-static int get_wan_send_pkts_cnt( int* send_pkts ){
-
-  
-  *send_pkts = 12801;
+static int get_wan_send_pkts_cnt( void ){
 
   return SUCCESS;
 }
 
-static int get_cpe_rsrp_rssi( int* rsrp_rssi ){
-#define RSRP_RSSI(RSRP,RSSI) (RSRP)<<16|RSSI
-  *rsrp_rssi = RSRP_RSSI(-66,96);
-  return SUCCESS;
-}
-
-static int get_cpe_sinr_rsrq( int* sinr_rsrq ){
-#define RSRP_RSSI(RSRP,RSSI) (RSRP)<<16|RSSI
-
-  *sinr_rsrq = RSRP_RSSI(-99,77);
+static int get_cpe_rsrp( void ){
 
   return SUCCESS;
-}
-
-int get_online_status(term_online_report_t* online_status){
-
-  int status = 0, ret = -1;
-
-  get_cpe_id( online_status->cpe_id);
-
-  get_imsi( online_status->imsi );
-
-  get_vendor_name( online_status->vendor_name );
-
-  get_cpe_ip( online_status->cpe_ip );
-
-  get_sw_version( online_status->sw_version );
-
-  get_modem_version( online_status->modem_version );
-
-  get_product_type( online_status->product_type );
-
-  get_cell_id( online_status->cell_id );
-
-  return status;
-}
-
-
-void test_get_online_status(void){
-
-    term_online_report_t term_online_status;
-
-    memset(&term_online_status,'\0',sizeof(term_online_status));
-
-    get_online_status(&term_online_status);
-
-    printf("%s\n",term_online_status.cpe_id);
-
-    printf("%s\n",term_online_status.imsi);
-
-    printf("%s\n",term_online_status.vendor_name);
-
-    printf("%s\n",term_online_status.cpe_ip);
-
-    printf("%s\n",term_online_status.modem_version);
-
-    printf("%s\n",term_online_status.product_type);
-
-    printf("%s\n",term_online_status.cell_id);
 
 }
 
+static int get_cpe_rssi( void ){
+
+  return SUCCESS;
+
+}
+
+static int get_cpe_sinr( void ){
+
+  return SUCCESS;
+
+}
+static int get_cpe_rsrq( void ){
+
+  return SUCCESS;
+
+}
 
 void init_cpe_hw_info(void){
   get_cpe_hw_info();
 }
-
 
 int create_cyclic_report_msg(char * msg){
 
   if(NULL == msg) return -1;
   //printf("debug\n");
   /*            1   2             3                      4              5              6              7             8          9 */
-  sprintf(msg,"%s\"%s\":\"%s\",\"%s\":\"%d-%d-%d-%d\",\"%s\":\"%ld\",\"%s\":\"%lu\",\"%s\":\"%lu\",\"%s\":\"%d\",\"%s\":\"%d\"%s",\
-  /*sprintf(msg,"%s%s:%s,%s:%d-%d-%d-%d,%s:%lu,%s:%lu,%s:%lu,%s:%d,%s:%d%s",\*/
+  sprintf(msg,"%s\"%s\":\"%s\",\"%s\":\"%d-%d-%d-%d\",\"%s\":\"%ld\",\"%s\":\"%u\",\"%s\":\"%u\",\"%s\":\"%d\",\"%s\":\"%d\"%s",\
 /* 1 */       "{",\
 /* 2 */       "cpeid",cpe_hw_info.cpe_id,\
 /* 3 */       "locationinfo",0,0,0,0,\
@@ -236,7 +188,6 @@ int create_online_report_msg(char * msg){
   //printf("debug\n");
   /*            1   2             3             4             5                      6              7             8              9          10*/
   sprintf(msg,"%s\"%s\":\"%s\",\"%s\":\"%ld\",\"%s\":\"%s\",\"%s\":\"%d.%d.%d.%d\",\"%s\":\"%d\",\"%s\":\"%d\",\"%s\":\"%d\",\"%s\":\"%d\"%s",\
-  /*sprintf(msg,"%s%s:%s,%s:%d-%d-%d-%d,%s:%lu,%s:%lu,%s:%lu,%s:%d,%s:%d%s",\*/
 /* 1  */       "{",\
 /* 2  */       "CPEID",cpe_hw_info.cpe_id,\
 /* 3  */       "IMSI",46225062244429,\
