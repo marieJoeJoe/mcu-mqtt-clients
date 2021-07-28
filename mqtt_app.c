@@ -52,30 +52,6 @@ typedef struct{
     char company[32];
 } iot_device_info_t;
 
-
-struct opts_struct {
-    char    *clientid;
-    int     nodelimiter;
-    char    *delimiter;
-    enum    QoS qos;
-    char    *username;
-    char    *password;
-    char    *host;
-    int     port;
-    int     showtopics;
-} opts = {
-    (char *)MQTT_CLIENT_ID_PC_LINUX, 0, (char *)"\n", QOS2, MQTT_USER, MQTT_PASS, (char *)MQTT_HOST, MQTT_PORT, 0
-};
-
-
-Cloud_MQTT_t Iot_mqtt;
-
-iot_device_info_t gateway = {
-    .iotstatus = IOT_STATUS_LOGIN,
-    .model = {"hello"},
-    .company = {"/world"}
-};
-
 Cloud_MQTT_t cyclic_mqtt;
 
 Cloud_MQTT_t ints_reply_mqtt;
@@ -185,6 +161,7 @@ int mqtt_cyclic_pub(Cloud_MQTT_t *piot_mqtt ,char *pbuf, int len, char retain)
     return ret;
 }
 
+/*
 int mqtt_will_msg_set(Cloud_MQTT_t *piot_mqtt, char *pbuf, int len)//set will dara
 {
     memset(piot_mqtt->will_topic, '\0', MQTT_TOPIC_SIZE);
@@ -200,6 +177,7 @@ int mqtt_will_msg_set(Cloud_MQTT_t *piot_mqtt, char *pbuf, int len)//set will da
     Iot_mqtt.will.qos = QOS2;
 
 }
+*/
 
 void mqtt_data_rx_cb(void *pbuf, int len) 
 {
@@ -234,7 +212,7 @@ void * mqtt_cyclic_report_task_thread(void *arg)
     sprintf(cyclic_mqtt.pub_topic, "%s%s", TOPICX, TPOICA);	//set pub topic
     //printf("pub:%s\n", piot_mqtt->pub_topic);
 
-    mqtt_will_msg_set(&cyclic_mqtt, will_msg, strlen(will_msg));
+    //mqtt_will_msg_set(&cyclic_mqtt, will_msg, strlen(will_msg));
 
     ret = term_mqtt_device_connect(&cyclic_mqtt, TERM_MQTT_CLIENT_ID_PC_LINUX_CYC, NULL);
 
@@ -289,7 +267,7 @@ void * mqtt_inst_reply_task_thread(void* arg)
   
     ints_reply_mqtt.DataArrived_Cb = mqtt_data_rx_cb;
   
-    mqtt_will_msg_set(&ints_reply_mqtt, will_msg, strlen(will_msg));
+    //mqtt_will_msg_set(&ints_reply_mqtt, will_msg, strlen(will_msg));
 
     ret = term_mqtt_device_connect(&ints_reply_mqtt,TERM_MQTT_CLIENT_ID_PC_LINUX_INST,mqtt_inst_msg_arrived_cb);
   
