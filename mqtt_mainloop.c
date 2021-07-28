@@ -14,13 +14,11 @@
 int main(int argc, char *argv[])
 {
 
-    int ret = -1;
-
     init_cpe_hw_info();
 
     pthread_t t_cyclic_report, t_inst_reply;//linux thread id
 
-    pthread_create(&t_inst_reply, NULL, &mqtt_inst_reply_task_thread, NULL);
+    pthread_create(&t_inst_reply, NULL, &mqtt_query_reply_task_thread, NULL);
 
     pthread_create(&t_cyclic_report, NULL, &mqtt_cyclic_report_task_thread, NULL);
 

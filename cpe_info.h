@@ -7,9 +7,9 @@
 
 
 enum CPE_INFO_RET{
-  ERROR = -1,
-  FAILED = 0,
-  SUCCESS = 1,
+  CPE_ERROR = -1,
+  CPE_FAILED = 0,
+  CPE_SUCCESS = 1,
 };
 
 #define CPE_ID_LEN			128

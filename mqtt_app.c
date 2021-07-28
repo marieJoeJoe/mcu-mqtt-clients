@@ -11,19 +11,13 @@
 #include "netinet/in.h"
 #include "arpa/inet.h"
 #include "fcntl.h"
-
+#include "cpe_info.h"
 
 #define MQTT_TOPIC_SIZE     (128)		// topic length limit
 #define MQTT_BUF_SIZE       (8 * 1024) 	//mqtt buffer size
 
 #define MQTT_HOST "47.106.204.139"		//ip addr
 #define MQTT_PORT 1883					//port
-
-#define MQTT_USER "helloMQTT"				//user
-#define MQTT_PASS "ackmqtt"			//passwd
-#define MQTT_CLIENT_ID_PC_LINUX    "mcu-mqtt-client-pc-linux"		//client id
-#define MQTT_CLIENT_ID_PC_LINUX_AT "mcu-mqtt-client-pc-linux-at"		//client id
-#define MQTT_CLIENT_ID_MCU_RTOS_AT "mcu-mqtt-client-mcu-rtos-at"		//client id
 
 
 #define TERM_MQTT_USER "terminal"			//user
@@ -36,8 +30,8 @@ typedef struct {
     Client Client;
     char sub_topic[MQTT_TOPIC_SIZE];		//sub topic
     char pub_topic[MQTT_TOPIC_SIZE];		//pub topic
-    char mqtt_buffer[MQTT_BUF_SIZE];		//send buffer
-    char mqtt_read_buffer[MQTT_BUF_SIZE];	//recv buffer
+    unsigned char mqtt_buffer[MQTT_BUF_SIZE];		//send buffer
+    unsigned char mqtt_read_buffer[MQTT_BUF_SIZE];	//recv buffer
 
     unsigned char willFlag;					
     MQTTPacket_willOptions will;
@@ -46,14 +40,8 @@ typedef struct {
     pMessageArrived_Fun DataArrived_Cb;
 }Cloud_MQTT_t;
 
-typedef struct{
-    enum iot_ctrl_status_t iotstatus;
-    char model[5];
-    char company[32];
-} iot_device_info_t;
 
 Cloud_MQTT_t cyclic_mqtt;
-
 Cloud_MQTT_t ints_reply_mqtt;
 
 void mqtt_inst_msg_arrived_cb(MessageData* md)
@@ -67,7 +55,7 @@ void mqtt_inst_msg_arrived_cb(MessageData* md)
     }
 }
 
-int term_mqtt_device_connect(Cloud_MQTT_t *piot_mqtt,char* ClinetID, pMessageArrived_Fun fun)
+int term_mqtt_device_connect(Cloud_MQTT_t *piot_mqtt,char* ClinetID, messageHandler fun)
 {
     int rc = 0, ret = 0;
 
@@ -161,24 +149,6 @@ int mqtt_cyclic_pub(Cloud_MQTT_t *piot_mqtt ,char *pbuf, int len, char retain)
     return ret;
 }
 
-/*
-int mqtt_will_msg_set(Cloud_MQTT_t *piot_mqtt, char *pbuf, int len)//set will dara
-{
-    memset(piot_mqtt->will_topic, '\0', MQTT_TOPIC_SIZE);
-    MQTTPacket_willOptions mqtt_will = MQTTPacket_willOptions_initializer;
-
-    strcpy(piot_mqtt->will_topic, Iot_mqtt.pub_topic);
-    memcpy(&Iot_mqtt.will, &mqtt_will, sizeof(MQTTPacket_willOptions));
-
-    Iot_mqtt.willFlag = 1;
-    Iot_mqtt.will.retained = 1;
-    Iot_mqtt.will.topicName.cstring = (char *)piot_mqtt->will_topic;
-    Iot_mqtt.will.message.cstring = (char *)pbuf;
-    Iot_mqtt.will.qos = QOS2;
-
-}
-*/
-
 void mqtt_data_rx_cb(void *pbuf, int len) 
 {
     int is_inst = -1;
@@ -187,8 +157,8 @@ void mqtt_data_rx_cb(void *pbuf, int len)
     printf("data = %s\n status %d\n", ( char *)pbuf,is_inst);
     if(1 == is_inst){
       int ret = -1;
-      char* json_inst_reply_msg = malloc(512);
-      memset(json_inst_reply_msg,'\0',sizeof(json_inst_reply_msg));
+      char* json_inst_reply_msg = (char *)malloc(REPORT_MSG_LEN * sizeof(char));
+      memset(json_inst_reply_msg,'\0',REPORT_MSG_LEN);
       ret = create_cyclic_report_msg(json_inst_reply_msg);
       //printf("%s\n",json_inst_reply_msg);
       //printf("valid %d\n",JSON_Validate( json_inst_reply_msg, strlen(json_inst_reply_msg) ));
@@ -202,17 +172,16 @@ void mqtt_data_rx_cb(void *pbuf, int len)
 void * mqtt_cyclic_report_task_thread(void *arg)
 {
 
-    int ret, len; 
-    char will_msg[256] = {"[mqtt_cyclic::say goodbye!]"};//initializ will data
+    int ret = -1; 
+    //char will_msg[256] = {"[mqtt_cyclic::say goodbye!]"};//initializ will data
 
-    //iot_mqtt_init(&Iot_mqtt);//initial topic
+    char* json_online_msg = (char *)malloc( REPORT_MSG_LEN * sizeof(char) );
+    char* json_cyc_msg = (char *)malloc( REPORT_MSG_LEN * sizeof(char) );
 
     memset(&cyclic_mqtt, '\0', sizeof(Cloud_MQTT_t));
 
     sprintf(cyclic_mqtt.pub_topic, "%s%s", TOPICX, TPOICA);	//set pub topic
     //printf("pub:%s\n", piot_mqtt->pub_topic);
-
-    //mqtt_will_msg_set(&cyclic_mqtt, will_msg, strlen(will_msg));
 
     ret = term_mqtt_device_connect(&cyclic_mqtt, TERM_MQTT_CLIENT_ID_PC_LINUX_CYC, NULL);
 
@@ -222,15 +191,11 @@ void * mqtt_cyclic_report_task_thread(void *arg)
         ret = term_mqtt_device_connect(&cyclic_mqtt, TERM_MQTT_CLIENT_ID_PC_LINUX_CYC, NULL);
     }
 
-    char* json_online_msg = malloc(512);
-
-    memset(json_online_msg,'\0',sizeof(json_online_msg));
+    memset( json_online_msg, '\0', REPORT_MSG_LEN * sizeof(char) );
 
     ret = create_online_report_msg(json_online_msg);
 
     //printf("%s\n",json_online_msg);
-
-    //printf("valid %d\n",JSON_Validate( json_online_msg, strlen(json_online_msg) ));
 
     mqtt_cyclic_pub(&cyclic_mqtt,json_online_msg,strlen(json_online_msg),0);
 
@@ -238,9 +203,7 @@ void * mqtt_cyclic_report_task_thread(void *arg)
 
     while (1){
 
-        char* json_cyc_msg = malloc(512);
-
-        memset(json_cyc_msg,'\0',sizeof(json_cyc_msg));
+        memset(json_cyc_msg, '\0', REPORT_MSG_LEN * sizeof(char));
 
         ret = create_cyclic_report_msg(json_cyc_msg);
 
@@ -255,10 +218,10 @@ void * mqtt_cyclic_report_task_thread(void *arg)
 
 }
 
-void * mqtt_inst_reply_task_thread(void* arg)
+void * mqtt_query_reply_task_thread(void* arg)
 {
-    int ret, len; 
-    char will_msg[256] = {"[mqtt_inst_reply::say goodbye!]"};//initializ will data
+    int ret = -1; 
+    //char will_msg[256] = {"[mqtt_inst_reply::say goodbye!]"};//initializ will data
 
     memset(&ints_reply_mqtt, '\0', sizeof(Cloud_MQTT_t));
 
